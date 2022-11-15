@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const Promise = require('bluebird');
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
@@ -30,12 +31,31 @@ exports.readAll = (callback) => {
       console.log('index.readAll error: ' + err);
       callback(err);
     } else {
-      const data = files.map((file) => {
-        console.log(file);
-        const id = path.parse(file).name;
-        return {id: id, text: id};
+      // const data = files.map((file) => {
+      //   console.log(file);
+      //   const id = path.parse(file).name;
+      //   return {id: id, text: id};
+      // });
+      // callback(null, data);
+
+      Promise.all(
+        files.map((file) => {
+          return new Promise((resolve, reject) => {
+            fs.readFile(path.join(exports.dataDir, file), 'utf8', (err, fileData) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve({id: path.parse(file).name, text: fileData});
+              }
+            });
+          });
+        })
+      ).then((allData) => {
+        console.log(allData);
+        callback(null, allData);
+      }).catch((err) => {
+        callback(err);
       });
-      callback(null, data);
     }
   });
 };
