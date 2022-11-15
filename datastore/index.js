@@ -3,21 +3,41 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
-var items = {};
-
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId();
-  items[id] = text;
-  callback(null, { id, text });
+  counter.getNextUniqueId((err, dataString)=> {
+    if (err) {
+      console.log('erroring here in server.js - line 11');
+      callback(err);
+    } else {
+      fs.writeFile(path.join(exports.dataDir, `${dataString}.txt`), text, (err) => {
+        if (err) {
+          console.log(err);
+          callback(err);
+        } else {
+          callback(null, {id: dataString, text: text});
+        }
+      });
+    }
+  });
+  // callback(null, { id, text });
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      console.log('index.readAll error: ' + err);
+      callback(err);
+    } else {
+      const data = files.map((file) => {
+        console.log(file);
+        const id = path.parse(file).name;
+        return {id: id, text: id};
+      });
+      callback(null, data);
+    }
   });
-  callback(null, data);
 };
 
 exports.readOne = (id, callback) => {

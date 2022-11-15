@@ -21,6 +21,7 @@ app.use(express.static(path.join(__dirname, './public')));
 app.post('/todo', (req, res) => {
   Todo.create(req.body.todoText, (err, newTodo) => {
     if (err) {
+      console.log('erroring here in server.js');
       res.sendStatus(400);
     } else {
       res.status(201).json(newTodo);
