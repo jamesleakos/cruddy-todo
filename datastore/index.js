@@ -26,19 +26,17 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  fs.readdir(exports.dataDir, (err, files) => {
-    if (err) {
-      console.log('index.readAll error: ' + err);
-      callback(err);
-    } else {
-      // const data = files.map((file) => {
-      //   console.log(file);
-      //   const id = path.parse(file).name;
-      //   return {id: id, text: id};
-      // });
-      // callback(null, data);
-
-      Promise.all(
+  new Promise((resolve, reject) => {
+    fs.readdir(exports.dataDir, (err, files) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(files);
+      }
+    });
+  })
+    .then((files) => {
+      return Promise.all(
         files.map((file) => {
           return new Promise((resolve, reject) => {
             fs.readFile(path.join(exports.dataDir, file), 'utf8', (err, fileData) => {
@@ -50,14 +48,15 @@ exports.readAll = (callback) => {
             });
           });
         })
-      ).then((allData) => {
-        console.log(allData);
-        callback(null, allData);
-      }).catch((err) => {
-        callback(err);
-      });
-    }
-  });
+      );
+    })
+    .then((allData) => {
+      //wait it passed
+      console.log(allData);
+      callback(null, allData);
+    }).catch((err) => {
+      callback(err);
+    });
 };
 
 exports.readOne = (id, callback) => {
