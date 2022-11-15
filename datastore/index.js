@@ -41,12 +41,14 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  var text = items[id];
-  if (!text) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, { id, text });
-  }
+  fs.readFile(path.join(exports.dataDir, id + '.txt'), 'utf8', (err, fileData) => {
+    if (err) {
+      callback(err);
+    } else {
+      console.log('filedata is: ' + fileData);
+      callback(null, {id: id, text: fileData});
+    }
+  });
 };
 
 exports.update = (id, text, callback) => {
@@ -58,6 +60,7 @@ exports.update = (id, text, callback) => {
     callback(null, { id, text });
   }
 };
+
 
 exports.delete = (id, callback) => {
   var item = items[id];
